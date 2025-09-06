@@ -18,11 +18,8 @@ const HomePage = ({ username, onLogout }) => {
           <CardDescription>What would you like to do today?</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Link to="/check-mole" className="block">
-            <Button className="w-full">Check a Mole</Button>
-          </Link>
           <Link to="/questionnaire" className="block">
-            <Button className="w-full">Fill out Mole Questionnaire</Button>
+            <Button className="w-full">Check a Mole</Button>
           </Link>
         </CardContent>
         <CardFooter>

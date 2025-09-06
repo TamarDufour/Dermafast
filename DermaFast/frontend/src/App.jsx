@@ -43,11 +43,11 @@ function App() {
       <div className="App">
         <Routes>
           <Route
-            path="/login"
-            element={!isAuthenticated ? <AuthForm onLogin={handleLogin} /> : <Navigate to="/" />}
+            path="/"
+            element={!isAuthenticated ? <AuthForm onLogin={handleLogin} /> : <Navigate to="/home" />}
           />
           <Route
-            path="/"
+            path="/home"
             element={
               isAuthenticated ? (
                 <HomePage
@@ -55,17 +55,17 @@ function App() {
                   onLogout={handleLogout}
                 />
               ) : (
-                <Navigate to="/login" />
+                <Navigate to="/" />
               )
             }
           />
           <Route
             path="/check-mole"
-            element={isAuthenticated ? <CheckMolePage /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <CheckMolePage /> : <Navigate to="/" />}
           />
           <Route
             path="/questionnaire"
-            element={isAuthenticated ? <MoleQuestionnairePage nationalId={user?.nationalId} /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <MoleQuestionnairePage nationalId={user?.nationalId} /> : <Navigate to="/" />}
           />
         </Routes>
       </div>

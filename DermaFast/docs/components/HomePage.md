@@ -3,7 +3,7 @@
 **File:** `DermaFast/frontend/src/components/HomePage.jsx`
 
 **Description:**
-The `HomePage` component serves as the main dashboard for a logged-in user. It displays a welcome message with the user's name and provides navigation to other parts of the application, such as checking a mole or filling out a questionnaire. It also includes a logout button.
+The `HomePage` component serves as the main dashboard for a logged-in user. It displays a welcome message with the user's name and provides navigation to other parts of the application: checking a mole or updating an appointment with a doctor. It also includes a logout button.
 
 **Props:**
 *   `username` (string): The name of the logged-in user to be displayed in the welcome message.
@@ -11,9 +11,8 @@ The `HomePage` component serves as the main dashboard for a logged-in user. It d
 
 **Functionality:**
 *   **User Welcome:** Displays a personalized welcome message to the user.
-*   **Navigation:** Contains links to two main features:
-    *   "Check a Mole" (`/check-mole`): Navigates the user to the `CheckMolePage`.
-    *   "Fill out Mole Questionnaire" (`/questionnaire`): Navigates the user to the `MoleQuestionnairePage`.
+*   **Navigation:** Contains a link to the main feature:
+    *   "Check a Mole" (`/questionnaire`): Navigates the user to the `MoleQuestionnairePage`. After filling the questionnaire and submitting, the user will be redirected to the page where they can take a picture of the mole.
 *   **Logout:** The "Logout" button, when clicked, calls the `onLogout` function to handle the user's session termination.
 
 **Dependencies:**
