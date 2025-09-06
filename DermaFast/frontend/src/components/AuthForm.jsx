@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 
 const AuthForm = ({ onLogin }) => {
   const [nationalId, setNationalId] = useState('')
@@ -128,10 +129,10 @@ const AuthForm = ({ onLogin }) => {
           )}
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={loading || !nationalId || !password}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150"
+              className="w-full"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -144,7 +145,7 @@ const AuthForm = ({ onLogin }) => {
               ) : (
                 isLoginMode ? 'Sign in' : 'Create Account'
               )}
-            </button>
+            </Button>
           </div>
 
           <div className="text-center">

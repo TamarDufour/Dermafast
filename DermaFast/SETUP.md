@@ -31,6 +31,8 @@ CREATE TABLE users (
 
 -- Create an index on national_id for faster lookups
 CREATE INDEX idx_users_national_id ON users(national_id);
+
+
 ```
 
 ## Installation

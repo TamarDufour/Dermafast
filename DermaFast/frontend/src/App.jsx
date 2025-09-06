@@ -52,7 +52,6 @@ function App() {
               isAuthenticated ? (
                 <HomePage
                   username={user?.nationalId}
-                  previousLogin={new Date().toLocaleString()}
                   onLogout={handleLogout}
                 />
               ) : (
