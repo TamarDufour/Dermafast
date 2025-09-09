@@ -23,3 +23,5 @@ The `CheckMolePage` component provides a user interface for users to upload an i
     *   `Input` for the file selection.
     *   `Label` for the file input label.
 
+
+

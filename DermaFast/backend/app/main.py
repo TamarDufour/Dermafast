@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 # Change relative imports to absolute imports
 from .models import UserRegister, UserLogin, UserResponse, ErrorResponse
 from .auth import AuthService
-# from .database import db
 import os
 from dotenv import load_dotenv
 
@@ -14,10 +13,8 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    # await db.connect()
     yield
     # Shutdown
-    # await db.disconnect()
 
 app = FastAPI(
     title="DermaFast API", 

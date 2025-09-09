@@ -1,3 +1,7 @@
+
+#data folder
+moles_data/
+
 # Environment variables
 .env
 .env.local

@@ -26,3 +26,5 @@ The `AuthForm` component provides a user interface for both user registration an
 *   **Error Handling:** It handles API errors and network issues, displaying appropriate error messages to the user.
 *   **Loading State:** A loading spinner is shown on the submit button while the API request is pending.
 
+
+

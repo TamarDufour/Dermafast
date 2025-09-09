@@ -1,4 +1,4 @@
-# Supabase Database Schema
+# Supabase Database Management - schema and information
 
 This document outlines the database schema for the DermaFast application, hosted on Supabase.
 
@@ -13,7 +13,7 @@ This document outlines the database schema for the DermaFast application, hosted
 
 ## `users`
 
-This table stores user authentication and basic profile information.
+This table stores user authentication and basic profile information. When a user log in or creates a new user, this table updates.
 
 **Schema**
 
@@ -30,7 +30,7 @@ This table stores user authentication and basic profile information.
 
 ## `moles`
 
-This table stores information about the moles uploaded by users for analysis.
+This table stores information about the moles uploaded by users for analysis. 
 
 **Schema**
 
@@ -46,7 +46,7 @@ This table stores information about the moles uploaded by users for analysis.
 
 ## `mole_questionnaires`
 
-This table stores the responses from the mole questionnaire submitted by users. Each `q` column corresponds to a specific question about the mole.
+This table stores the responses from the mole questionnaire submitted by users. Each `q` column corresponds to a specific question about the mole. 
 
 **Schema**
 
@@ -84,4 +84,54 @@ INSERT INTO question_definitions (question_key, question_text) VALUES
   ('q4', 'Would you say it is larger than about 6 millimeters, roughly the size of a pencil eraser?'),
   ('q5', 'Has the mole changed recently in size, shape, color, or caused any new symptoms like itching, bleeding, or crusting?');
 ```
+## `ham_metadata`
+This tables includes the metadata about the pictures from HAM10000 dataset.
+Each row represents a single image, along with its diagnostic and patient-related metadata.
 
+**Schema**
+
+| Column         | Type          | Description                                               |
+| -------------- | ------------- | --------------------------------------------------------- |
+| `image_id`     | `TEXT`        | Primary key. Filename (without extension) of the image.   |
+| `image_url`    | `TEXT`        | Public URL to the image stored in Supabase Storage.       |
+| `lesion_id`    | `TEXT`        | Identifier for the lesion (can link multiple images).     |
+| `dx`           | `TEXT`        | Diagnosis (e.g., `mel`, `nv`, `bkl`).                     |
+| `dx_type`      | `TEXT`        | Type of diagnosis (e.g., `histopathology`).               |
+| `age`          | `REAL`        | Age of the patient (e.g., `50.0`).                        |
+| `sex`          | `TEXT`        | Sex of the patient (`male`, `female`, or `unknown`).      |
+| `localization` | `TEXT`        | Body location of the mole (e.g., `back`, `face`).         |
+| `uploaded_at`  | `TIMESTAMPTZ` | Timestamp when the row was inserted. Defaults to `now()`. |
+
+
+# `HAM10000_for_comparison` Bucket
+
+This Supabase Storage bucket contains a curated subset of mole images from the **HAM10000 dataset**.
+
+## Purpose
+
+The images in this bucket are used to:
+
+- Compare uploaded user mole images against labeled training images.
+- Support **Approximate Nearest Neighbor (ANN)** search for similar moles.
+- Enable embedding-based similarity in the decision-making process.
+
+## Content
+
+- **870 images** selected from the original dataset. 50% for them are of melenoma.
+- Stored in `.jpg` format.
+- Images are named using their `image_id` (e.g., `ISIC_0031434.jpg`).
+- Publicly accessible via Supabase storage.
+
+## Storage Size
+
+- Average size per image: ~300 KB  
+- Total size: ~250 MB
+
+## Access & Metadata
+
+Each image in the bucket corresponds to a row in the `ham_metadata` table in the database, which includes:
+
+- `image_id`: unique identifier
+- `image_url`: full public URL to the image in this bucket
+- `dx`: diagnosis label (e.g., `mel`, `nv`)
+- Other metadata (e.g., `lesion_id`, `age`, `sex`, `localization`)
