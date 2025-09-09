@@ -7,18 +7,51 @@ import { Label } from "@/components/ui/label";
 const CheckMolePage = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(null);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setMessage('');
   };
 
-  const handleAnalyze = () => {
-    if (file) {
-      setMessage(`Analyzing ${file.name}... (This is a placeholder)`);
-      // In a real app, you would send the file to the backend for analysis.
-    } else {
+  const handleAnalyze = async () => {
+    if (!file) {
       setMessage('Please select a file first.');
+      return;
+    }
+
+    // Retrieve token from local storage
+    const tokenData = JSON.parse(localStorage.getItem('authToken'));
+    if (!tokenData || !tokenData.access_token) {
+        setMessage('You must be logged in to analyze a mole.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setMessage('Analyzing...');
+    setAnalysisResult(null);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/analyze', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Analysis failed');
+      }
+
+      const result = await response.json();
+      setAnalysisResult(result);
+      setMessage('Analysis complete.');
+    } catch (error) {
+      setMessage(`Error: ${error.message}`);
     }
   };
 
@@ -69,6 +102,14 @@ const CheckMolePage = () => {
               <Input id="mole-picture" type="file" onChange={handleFileChange} />
             </div>
             {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
+            {analysisResult && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                <h4 className="font-semibold text-gray-800">Analysis Result</h4>
+                <p className="text-sm text-gray-600">
+                    Probability of Melanoma: {analysisResult.cnn_result.toFixed(4)}
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
         <CardFooter>

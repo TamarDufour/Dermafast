@@ -14,6 +14,12 @@ class UserResponse(BaseModel):
     message: str
     last_login: Optional[str] = None
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    national_id: str
+    last_login: Optional[str] = None
+
 class ErrorResponse(BaseModel):
     error: str
     message: str

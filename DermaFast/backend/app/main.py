@@ -1,10 +1,16 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# Change relative imports to absolute imports
-from .models import UserRegister, UserLogin, UserResponse, ErrorResponse
-from .auth import AuthService
+import torch
+from PIL import Image
+import io
 import os
+
+from .models import UserRegister, UserLogin, UserResponse, ErrorResponse, TokenResponse
+from .auth import AuthService
+from .ml_model import BasicCNN, val_transform
+from .supabase_client import supabase_client as supabase
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -30,6 +36,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Load the model
+model = BasicCNN()
+# This is a placeholder for the path to your trained model weights
+MODEL_WEIGHTS_PATH = "DermaFast/backend/app/ml_model/model_weights.pkl"
+if os.path.exists(MODEL_WEIGHTS_PATH):
+    model.load_state_dict(torch.load(MODEL_WEIGHTS_PATH))
+model.eval()
 
 @app.get("/health")
 async def health_check():
@@ -83,7 +97,7 @@ async def register(user_data: UserRegister):
             detail=f"Internal server error: {str(e)}"
         )
 
-@app.post("/api/login", response_model=UserResponse)
+@app.post("/api/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
     """
     Login user with national_id and password
@@ -108,11 +122,7 @@ async def login(user_data: UserLogin):
                 detail="Invalid national ID or password"
             )
         
-        return UserResponse(
-            national_id=user_info["national_id"],
-            message="Login successful",
-            last_login=user_info["last_login"]
-        )
+        return user_info
         
     except HTTPException:
         raise
@@ -121,6 +131,49 @@ async def login(user_data: UserLogin):
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+        
+@app.post("/api/analyze")
+async def analyze_mole(file: UploadFile = File(...), current_user: dict = Depends(AuthService.get_current_user)):
+    """
+    Analyze a mole image and store the results.
+    """
+    try:
+        # Read image from upload
+        image_bytes = await file.read()
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        # Apply transformations
+        image_tensor = val_transform(image).unsqueeze(0)
+
+        # Get prediction
+        with torch.no_grad():
+            classification, embedding = model(image_tensor)
+        
+        # Extract values
+        cnn_result = classification.item()
+        embedding_list = embedding.numpy().flatten().tolist()
+        
+        # Get user_id from the authenticated user
+        user_id = current_user['id']
+
+        # Store results in Supabase
+        data, error = await supabase.table("cnn_results").insert({
+            "user_id": user_id,
+            "cnn_result": cnn_result,
+            "embedding": embedding_list
+        }).execute()
+        
+        if error:
+            raise HTTPException(status_code=500, detail=f"Failed to store results: {error.message}")
+
+        return {
+            "message": "Analysis successful",
+            "cnn_result": cnn_result,
+            "embedding_dimensions": len(embedding_list)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during analysis: {str(e)}")
+
 
 @app.get("/")
 async def root():
@@ -132,7 +185,8 @@ async def root():
         "endpoints": {
             "health": "/health",
             "register": "/api/register",
-            "login": "/api/login"
+            "login": "/api/login",
+            "analyze": "/api/analyze"
         }
     }
 
