@@ -11,7 +11,7 @@ This document outlines the database schema for the DermaFast application, hosted
 
 ---
 
-## `users`
+## `users` - Table
 
 This table stores user authentication and basic profile information. When a user log in or creates a new user, this table updates.
 
@@ -28,7 +28,7 @@ This table stores user authentication and basic profile information. When a user
 
 ---
 
-## `moles`
+## `moles` - Table
 
 This table stores information about the moles uploaded by users for analysis. 
 
@@ -44,7 +44,7 @@ This table stores information about the moles uploaded by users for analysis.
 
 ---
 
-## `mole_questionnaires`
+## `mole_questionnaires` - Table
 
 This table stores the responses from the mole questionnaire submitted by users. Each `q` column corresponds to a specific question about the mole. 
 
@@ -63,7 +63,7 @@ This table stores the responses from the mole questionnaire submitted by users. 
 
 ---
 
-## `question_definitions`
+## `question_definitions` - Table
 
 This table stores the text for each question in the mole questionnaire. This allows the questions to be managed dynamically without changing the application code.
 
@@ -84,7 +84,7 @@ INSERT INTO question_definitions (question_key, question_text) VALUES
   ('q4', 'Would you say it is larger than about 6 millimeters, roughly the size of a pencil eraser?'),
   ('q5', 'Has the mole changed recently in size, shape, color, or caused any new symptoms like itching, bleeding, or crusting?');
 ```
-## `ham_metadata`
+## `ham_metadata` - Table
 This tables includes the metadata about the pictures from HAM10000 dataset.
 Each row represents a single image, along with its diagnostic and patient-related metadata.
 
@@ -135,3 +135,27 @@ Each image in the bucket corresponds to a row in the `ham_metadata` table in the
 - `image_url`: full public URL to the image in this bucket
 - `dx`: diagnosis label (e.g., `mel`, `nv`)
 - Other metadata (e.g., `lesion_id`, `age`, `sex`, `localization`)
+
+
+## `cnn_results` - Table
+
+This table stores the output of the CNN model after a user uploads a mole image. It includes the binary classification result and the embedding vector used for similarity search.
+- The `embedding` vector will later be used for **Approximate Nearest Neighbor (ANN)** retrieval to compare uploaded mole images with a training set.
+- `cnn_result` represents the **likelihood** (between 0 and 1) of the mole being melanoma.
+
+**Schema**
+
+| Column Name | Type         | Description                                                  |
+|-------------|--------------|--------------------------------------------------------------|
+| `id`        | `SERIAL`     | Auto-incrementing unique ID for each CNN result             |
+| `user_id`   | `Varchar(255)`    | Foreign key referencing `users(id)`                         |
+| `timestamp` | `TIMESTAMPTZ`| Time of prediction (defaults to `now()`)                    |
+| `cnn_result`| `FLOAT`      | Binary prediction (probability of melanoma)                 |
+| `embedding` | `FLOAT[]`    | 256-dimensional embedding vector from the CNN’s dropout layer |
+
+### 🔗 Relationships
+
+- `user_id` references `users(id)` from the `users` table.
+- Each user can have multiple CNN results associated with different mole checks.
+
+
