@@ -8,7 +8,7 @@ import os
 
 from .models import UserRegister, UserLogin, UserResponse, ErrorResponse, TokenResponse
 from .auth import AuthService
-from .ml_model import BasicCNN, val_transform
+from .ml_model import load_model, inference
 from .supabase_client import supabase_client as supabase
 
 from dotenv import load_dotenv
@@ -38,12 +38,9 @@ app.add_middleware(
 )
 
 # Load the model
-model = BasicCNN()
-# This is a placeholder for the path to your trained model weights
-MODEL_WEIGHTS_PATH = "DermaFast/backend/app/ml_model/model_weights.pkl"
-if os.path.exists(MODEL_WEIGHTS_PATH):
-    model.load_state_dict(torch.load(MODEL_WEIGHTS_PATH))
-model.eval()
+# TODO: Make sure to replace 'model.pth' with the actual path to your model weights file.
+model = load_model('model.pth')
+
 
 @app.get("/health")
 async def health_check():
@@ -140,24 +137,15 @@ async def analyze_mole(file: UploadFile = File(...), current_user: dict = Depend
     try:
         # Read image from upload
         image_bytes = await file.read()
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
-        # Apply transformations
-        image_tensor = val_transform(image).unsqueeze(0)
 
         # Get prediction
-        with torch.no_grad():
-            classification, embedding = model(image_tensor)
-        
-        # Extract values
-        cnn_result = classification.item()
-        embedding_list = embedding.numpy().flatten().tolist()
+        cnn_result, embedding_list = inference(model, image_bytes)
         
         # Get user_id from the authenticated user
         user_id = current_user['id']
 
         # Store results in Supabase
-        data, error = await supabase.table("cnn_results").insert({
+        response, error = await supabase.table("cnn_results").insert({
             "user_id": user_id,
             "cnn_result": cnn_result,
             "embedding": embedding_list
@@ -166,8 +154,18 @@ async def analyze_mole(file: UploadFile = File(...), current_user: dict = Depend
         if error:
             raise HTTPException(status_code=500, detail=f"Failed to store results: {error.message}")
 
+        # The actual data is in the 'data' attribute of the response object
+        if response and hasattr(response, 'data') and response.data:
+             # Assuming the API returns the inserted row in `data`
+            inserted_data = response.data[0]
+            return {
+                "message": "Analysis successful",
+                "cnn_result": inserted_data.get("cnn_result"),
+                "embedding_dimensions": len(inserted_data.get("embedding", []))
+            }
+
         return {
-            "message": "Analysis successful",
+            "message": "Analysis successful but no data returned from DB",
             "cnn_result": cnn_result,
             "embedding_dimensions": len(embedding_list)
         }

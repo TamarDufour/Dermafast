@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
+from PIL import Image
+import io
 
 # Image transformation
 val_transform = transforms.Compose([
@@ -48,3 +50,18 @@ class BasicCNN(nn.Module):
         classification = torch.sigmoid(self.fc2(embedding))
         
         return classification, embedding
+
+def load_model(model_path='model.pth'):
+    model = BasicCNN()
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    model.eval()
+    return model
+
+def inference(model: nn.Module, image_bytes: bytes):
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    image_tensor = val_transform(image).unsqueeze(0)
+
+    with torch.no_grad():
+        classification, embedding = model(image_tensor)
+        
+    return classification.item(), embedding.numpy().flatten().tolist()
