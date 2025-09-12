@@ -14,6 +14,5 @@ filtered_df = filtered_df.groupby(['address', 'sniff_provider','phone_num', 'tim
 # clean 'times' so it formated as a list of days and hours
 
 
-
 # Save the cleaned dataframe to a new CSV file
 filtered_df.to_csv('cleaned_golden_pages.csv', index=False)
