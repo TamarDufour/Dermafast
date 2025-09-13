@@ -51,6 +51,7 @@ const CheckMolePage = () => {
       setAnalysisResult(result);
       setMessage('Analysis complete.');
     } catch (error) {
+      console.error('Analysis error:', error);
       setMessage(`Error: ${error.message}`);
     }
   };

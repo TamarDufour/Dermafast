@@ -150,7 +150,7 @@ This table stores the output of the CNN model after a user uploads a mole image.
 | `id`        | `SERIAL`     | Auto-incrementing unique ID for each CNN result             |
 | `user_id`   | `Varchar(255)`    | Foreign key referencing `users(id)`                         |
 | `timestamp` | `TIMESTAMPTZ`| Time of prediction (defaults to `now()`)                    |
-| `cnn_result`| `FLOAT`      | Binary prediction (probability of melanoma)                 |
+| `cnn_result`| `FLOAT`      | Pribability of the mole to be melanoma               |
 | `embedding` | `FLOAT[]`    | 256-dimensional embedding vector from the CNN’s dropout layer |
 
 ### 🔗 Relationships

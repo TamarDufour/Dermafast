@@ -32,13 +32,14 @@ const AuthForm = ({ onLogin }) => {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage(data.message)
-        setMessageType('success')
-        
         if (isLoginMode) {
-          // Call the login callback with the national ID
-          onLogin(nationalId)
+          setMessage('Login successful!')
+          setMessageType('success')
+          // Pass the full API response (including access_token) to the login callback
+          onLogin(data)
         } else {
+          setMessage(data.message)
+          setMessageType('success')
           // Clear form on successful registration and switch to login mode
           setNationalId('')
           setPassword('')

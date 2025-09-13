@@ -125,7 +125,7 @@ class AuthService:
                 raise credentials_exception
             
             # Fetch user from DB to ensure they exist
-            response = await supabase_client.from_("users").select("id, national_id").eq("id", user_id).execute()
+            response = supabase_client.from_("users").select("id, national_id").eq("id", user_id).execute()
             if not response.data:
                 raise credentials_exception
             

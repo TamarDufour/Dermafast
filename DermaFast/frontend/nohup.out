@@ -1,0 +1,23 @@
+
+> dermafast-frontend@0.0.0 dev
+> vite
+
+
+  VITE v5.4.19  ready in 90 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+8:15:18 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:15:51 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:16:02 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:16:24 PM [vite] hmr update /src/App.jsx, /src/index.css, /src/App.css
+8:16:40 PM [vite] hmr update /src/components/AuthForm.jsx, /src/index.css, /src/App.css
+8:16:46 PM [vite] hmr update /src/App.jsx, /src/index.css, /src/App.css
+8:17:01 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:17:09 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:17:29 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css
+8:18:08 PM [vite] hmr update /src/App.jsx, /src/index.css, /src/App.css
+8:18:15 PM [vite] hmr update /src/components/AuthForm.jsx, /src/index.css, /src/App.css
+8:19:21 PM [vite] hmr update /src/App.jsx, /src/index.css, /src/App.css
+8:19:21 PM [vite] hmr update /src/components/AuthForm.jsx, /src/index.css, /src/App.css
+8:19:21 PM [vite] hmr update /src/components/CheckMolePage.jsx, /src/index.css, /src/App.css

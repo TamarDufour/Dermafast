@@ -51,17 +51,43 @@ class BasicCNN(nn.Module):
         
         return classification, embedding
 
-def load_model(model_path='model.pth'):
-    model = BasicCNN()
-    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-    model.eval()
-    return model
+def load_model(model_path='app/ml_model/model_weights.pkl'):
+    """Load the BasicCNN model from the specified path."""
+    try:
+        model = BasicCNN()
+        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        model.eval()
+        return model
+    except Exception as e:
+        print(f"Error loading model from {model_path}: {str(e)}")
+        raise e
 
 def inference(model: nn.Module, image_bytes: bytes):
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image_tensor = val_transform(image).unsqueeze(0)
-
-    with torch.no_grad():
-        classification, embedding = model(image_tensor)
+    """
+    Perform inference on a mole image.
+    
+    Args:
+        model: The loaded BasicCNN model
+        image_bytes: Raw image data as bytes
         
-    return classification.item(), embedding.numpy().flatten().tolist()
+    Returns:
+        Tuple of (classification_probability, embedding_list)
+        
+    TODO: Currently, there is no threshold for the classification, we will need to add it later.
+    As the results are stored in the database, we'll be able to adjust the results later.
+    """
+    try:
+        # Load and convert image
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        
+        # Transform image
+        image_tensor = val_transform(image).unsqueeze(0)
+
+        with torch.no_grad():
+            classification, embedding = model(image_tensor)
+            
+        return classification.item(), embedding.numpy().flatten().tolist()
+        
+    except Exception as e:
+        print(f"Error in inference: {str(e)}")
+        raise e

@@ -12,28 +12,37 @@ function App() {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('userData');
+      const authToken = localStorage.getItem('authToken');
       
-      if (token && userData) {
-        setIsAuthenticated(true);
-        setUser(JSON.parse(userData));
+      if (authToken) {
+        try {
+          const tokenData = JSON.parse(authToken);
+          if (tokenData && tokenData.access_token && tokenData.national_id) {
+            setIsAuthenticated(true);
+            setUser({ nationalId: tokenData.national_id });
+          } else {
+            localStorage.removeItem('authToken');
+          }
+        } catch (e) {
+          console.error('Error parsing auth token:', e);
+          localStorage.removeItem('authToken');
+        }
       }
     };
     
     checkAuth();
   }, []);
 
-  const handleLogin = (nationalId) => {
-    localStorage.setItem('authToken', 'dummy-token');
-    localStorage.setItem('userData', JSON.stringify({ nationalId }));
+  const handleLogin = (loginData) => {
+    // loginData contains the full response from /api/login including access_token
+    localStorage.setItem('authToken', JSON.stringify(loginData));
     setIsAuthenticated(true);
-    setUser({ nationalId });
+    setUser({ nationalId: loginData.national_id });
   };
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    localStorage.removeItem('userData'); // Keep for backward compatibility
     setIsAuthenticated(false);
     setUser(null);
   };

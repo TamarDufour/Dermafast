@@ -31,7 +31,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite default port
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],  # Vite default ports
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,7 +39,7 @@ app.add_middleware(
 
 # Load the model
 # TODO: Make sure to replace 'model.pth' with the actual path to your model weights file.
-model = load_model('model.pth')
+model = load_model()
 
 
 @app.get("/health")
@@ -135,41 +135,50 @@ async def analyze_mole(file: UploadFile = File(...), current_user: dict = Depend
     Analyze a mole image and store the results.
     """
     try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
         # Read image from upload
         image_bytes = await file.read()
 
         # Get prediction
         cnn_result, embedding_list = inference(model, image_bytes)
         
-        # Get user_id from the authenticated user
-        user_id = current_user['id']
+        # Get national_id from the authenticated user
+        national_id = current_user['national_id']
 
         # Store results in Supabase
-        response, error = await supabase.table("cnn_results").insert({
-            "user_id": user_id,
-            "cnn_result": cnn_result,
+        insert_response = supabase.table("cnn_results").insert({
+            "national_id": national_id,
+            "cnn_result": float(cnn_result),  # Ensure it's a float
             "embedding": embedding_list
         }).execute()
-        
-        if error:
-            raise HTTPException(status_code=500, detail=f"Failed to store results: {error.message}")
 
-        # The actual data is in the 'data' attribute of the response object
-        if response and hasattr(response, 'data') and response.data:
-             # Assuming the API returns the inserted row in `data`
-            inserted_data = response.data[0]
+        # Check if Supabase returned an error
+        if hasattr(insert_response, 'error') and insert_response.error is not None:
+            raise HTTPException(status_code=500, detail=f"Failed to store results: {insert_response.error}")
+
+        # The inserted row should be available in the `data` attribute
+        if insert_response.data:
+            inserted_data = insert_response.data[0]
             return {
                 "message": "Analysis successful",
                 "cnn_result": inserted_data.get("cnn_result"),
                 "embedding_dimensions": len(inserted_data.get("embedding", []))
             }
 
+        # Fallback if no data was returned
         return {
             "message": "Analysis successful but no data returned from DB",
-            "cnn_result": cnn_result,
+            "cnn_result": float(cnn_result),
             "embedding_dimensions": len(embedding_list)
         }
+        
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"Error in analyze_mole: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred during analysis: {str(e)}")
 
 
