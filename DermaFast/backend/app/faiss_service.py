@@ -109,14 +109,30 @@ class FAISSService:
             image_ids: List of image IDs to get metadata for
             
         Returns:
-            List of metadata dictionaries
+            List of metadata dictionaries with constructed image URLs
         """
         try:
             response = supabase.table("ham_metadata").select(
-                "image_id, image_url, dx, age, sex, localization"
+                "image_id, dx, age, sex, localization"
             ).in_("image_id", image_ids).execute()
             
-            return response.data if response.data else []
+            if not response.data:
+                return []
+            
+            # Use the correct, case-sensitive bucket name
+            bucket_name = "HAM10000_for_comparison"
+            
+            # Add constructed image_url to each metadata entry
+            for item in response.data:
+                # Strip potential whitespace from image_id and create the path
+                image_id = item['image_id'].strip()
+                image_path = f"{image_id}.jpg"
+                
+                # Use the Supabase client to get the public URL, which is more robust
+                public_url = supabase.storage.from_(bucket_name).get_public_url(image_path)
+                item['image_url'] = public_url
+            
+            return response.data
             
         except Exception as e:
             print(f"Error getting image metadata: {str(e)}")
