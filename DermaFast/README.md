@@ -9,9 +9,9 @@ A full-stack application built with React + Vite, FastAPI, and Supabase.
 /backend           # FastAPI backend
 ```
 
-## Setup Instructions
+## Project Setup
 
-To run the application, you'll need two separate terminal windows: one for the backend and one for the frontend.
+Before running the application, you need to set up both the frontend and backend environments.
 
 ### 1. Environment Variables (Frontend)
 
@@ -29,54 +29,92 @@ The frontend uses Supabase for authentication. You'll need to provide your Supab
 
 You can get these values from your Supabase project dashboard at [https://supabase.com/dashboard](https://supabase.com/dashboard).
 
-### Backend Setup
+### 2. Backend Setup
 
 1.  **Navigate to the backend directory:**
     ```bash
     cd backend
     ```
 
-2.  **Create a virtual environment:**
+2.  **Create and activate a virtual environment:**
     ```bash
     python3 -m venv venv
+    source venv/bin/activate
     ```
+    *(On Windows, use `.\venv\Scripts\activate`)*
 
-3.  **Activate the virtual environment:**
-    *   On macOS and Linux:
-        ```bash
-        source venv/bin/activate
-        ```
-    *   On Windows:
-        ```bash
-        .\venv\Scripts\activate
-        ```
-
-4.  **Install dependencies:**
+3.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-5.  **Run the backend server:**
+### 3. Frontend Setup
+
+1.  **Navigate to the frontend directory:**
     ```bash
-    python run.py
+    cd frontend
     ```
 
-The backend API will be available at http://localhost:8000.
-API documentation will be available at http://localhost:8000/docs.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-### 3. Frontend Setup (Terminal 2)
+## Running the Application
+
+Once the setup is complete, you can run the application using one of the following methods.
+
+### Manual Startup
+
+You'll need two separate terminals to run the frontend and backend servers independently.
+
+1.  **Start the backend server:**
+    ```bash
+    # In the /backend directory with venv activated
+    python run.py
+    ```
+    The backend API will be available at http://localhost:8000.
+
+2.  **Start the frontend server:**
+    ```bash
+    # In the /frontend directory
+    npm run dev
+    ```
+    The frontend will be available at http://localhost:5173.
+
+### Using Helper Scripts
+
+Several Python scripts are provided in the root directory to simplify the process of stopping and starting the servers.
+
+#### `restart_servers_simple.py` (Recommended)
+
+This script stops any running server processes and restarts them in the background. It does not require any additional dependencies.
 
 ```bash
-# Go to the frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the frontend development server
-npm run dev
+# From the project root directory
+python3 restart_servers_simple.py
 ```
-The frontend will be available at http://localhost:5173.
+
+#### `restart_servers.py`
+
+A more advanced script that provides more detailed output and remains running to monitor the server processes. You can stop both servers by pressing `Ctrl+C`. This script requires the `psutil` package.
+
+```bash
+# First, install the dependency
+pip install psutil
+
+# Run the script from the project root
+python3 restart_servers.py
+```
+
+#### `restart.py`
+
+An ultra-minimalist script for restarting the servers. It's quick but provides less feedback than the other scripts.
+
+```bash
+# From the project root directory
+python3 restart.py
+```
 
 ## Features
 

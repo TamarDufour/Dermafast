@@ -67,6 +67,33 @@ def kill_port_processes(port, service_name):
     except Exception as e:
         print_status(f"Error killing {service_name} processes: {str(e)}", "ERROR")
 
+def check_backend_dependencies():
+    """Check if backend dependencies are properly installed"""
+    print_status("Checking backend dependencies...")
+    
+    try:
+        # Check if virtual environment exists
+        venv_path = BACKEND_DIR / "venv"
+        if not venv_path.exists():
+            print_status("Virtual environment not found", "ERROR")
+            return False
+        
+        # Check critical dependencies
+        cmd = f"cd {BACKEND_DIR} && source venv/bin/activate && python -c 'import faiss; import torch; import fastapi; print(\"Dependencies OK\")'"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print_status("✅ All backend dependencies available", "SUCCESS")
+            return True
+        else:
+            print_status(f"❌ Missing dependencies: {result.stderr.strip()}", "ERROR")
+            print_status("Run: pip install -r requirements.txt", "INFO")
+            return False
+            
+    except Exception as e:
+        print_status(f"Error checking dependencies: {str(e)}", "ERROR")
+        return False
+
 def start_backend():
     """Start backend server"""
     print_status("Starting backend server...")
@@ -124,10 +151,10 @@ def start_frontend():
         return None
 
 def test_connectivity():
-    """Test server connectivity"""
+    """Test server connectivity and new features"""
     print_status("Testing server connectivity...")
     
-    # Test backend
+    # Test backend health
     try:
         result = subprocess.run(
             ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", f"http://localhost:{BACKEND_PORT}/health"],
@@ -141,6 +168,21 @@ def test_connectivity():
             print_status(f"⚠️  Backend returned status: {result.stdout}", "WARNING")
     except Exception:
         print_status("⚠️  Backend health check failed", "WARNING")
+    
+    # Test backend root endpoint
+    try:
+        result = subprocess.run(
+            ["curl", "-s", f"http://localhost:{BACKEND_PORT}/"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if '"message":"Welcome to DermaFast API"' in result.stdout:
+            print_status("✅ Backend API responding correctly", "SUCCESS")
+        else:
+            print_status("⚠️  Backend API response unexpected", "WARNING")
+    except Exception:
+        print_status("⚠️  Backend API test failed", "WARNING")
     
     # Test frontend
     try:
@@ -157,11 +199,68 @@ def test_connectivity():
     except Exception:
         print_status("⚠️  Frontend connectivity check failed", "WARNING")
 
+def test_faiss_functionality():
+    """Test FAISS functionality"""
+    print_status("Testing FAISS similarity search...")
+    
+    try:
+        cmd = f"""cd {BACKEND_DIR} && source venv/bin/activate && python -c "
+from app.faiss_service import faiss_service
+from app.supabase_client import supabase_client as supabase
+import asyncio
+
+async def test():
+    try:
+        # Check embedding records
+        response = supabase.table('ham_metadata').select('image_id', count='exact').not_.is_('embedding', 'null').execute()
+        print(f'Embedding records available: {{response.count}}')
+        
+        if response.count and response.count > 0:
+            # Test FAISS loading
+            result = await faiss_service.load_embeddings()
+            if result:
+                print('FAISS service: Ready')
+                print(f'Indexed images: {{len(faiss_service.image_ids)}}')
+            else:
+                print('FAISS service: Failed to load')
+        else:
+            print('No embedding records found - FAISS will be unavailable')
+    except Exception as e:
+        print(f'FAISS test error: {{str(e)}}')
+
+asyncio.run(test())
+"
+"""
+        
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
+        
+        if result.returncode == 0:
+            output_lines = result.stdout.strip().split('\n')
+            for line in output_lines:
+                if line.strip():
+                    if 'Ready' in line:
+                        print_status(f"✅ {line}", "SUCCESS")
+                    elif 'error' in line.lower() or 'failed' in line.lower():
+                        print_status(f"⚠️  {line}", "WARNING")
+                    else:
+                        print_status(f"ℹ️  {line}", "INFO")
+        else:
+            print_status(f"⚠️  FAISS test failed: {result.stderr.strip()}", "WARNING")
+            
+    except Exception as e:
+        print_status(f"⚠️  FAISS functionality test error: {str(e)}", "WARNING")
+
 def main():
     """Main execution function"""
-    print_status("=" * 50)
-    print_status("🚀 DermaFast Server Restart", "INFO")
-    print_status("=" * 50)
+    print_status("=" * 60)
+    print_status("🚀 DermaFast Server Restart (Enhanced)", "INFO")
+    print_status("=" * 60)
+    
+    # Check backend dependencies first
+    if not check_backend_dependencies():
+        print_status("❌ Backend dependencies check failed", "ERROR")
+        print_status("Please install missing dependencies and try again", "ERROR")
+        sys.exit(1)
     
     # Kill existing processes
     kill_port_processes(BACKEND_PORT, "backend")
@@ -186,16 +285,39 @@ def main():
     # Test connectivity
     test_connectivity()
     
+    # Test FAISS functionality
+    test_faiss_functionality()
+    
     # Success message
-    print_status("=" * 50)
+    print_status("=" * 60)
     print_status("🎉 Servers restarted successfully!", "SUCCESS")
     print_status(f"🐍 Backend:  http://localhost:{BACKEND_PORT}", "SUCCESS")
+    print_status(f"   📋 API Docs: http://localhost:{BACKEND_PORT}/docs", "INFO")
+    print_status(f"   ❤️  Health: http://localhost:{BACKEND_PORT}/health", "INFO")
     print_status(f"⚛️  Frontend: http://localhost:{FRONTEND_PORT}", "SUCCESS")
-    print_status("=" * 50)
+    print_status("=" * 60)
     
-    # Option to keep running or exit
-    print_status("Servers are running in background. This script will exit now.", "INFO")
-    print_status("To stop servers manually, run: lsof -ti:8000 | xargs kill && lsof -ti:5173 | xargs kill", "INFO")
+    # Enhanced instructions
+    print_status("🔧 Server Management:", "INFO")
+    print_status("  • Stop servers: lsof -ti:8000 | xargs kill && lsof -ti:5173 | xargs kill", "INFO")
+    print_status("  • Run tests: cd backend && python test_comprehensive.py", "INFO")
+    print_status("  • Debug tokens: cd backend && python debug_token.py", "INFO")
+    print_status("=" * 60)
+    
+    # Common troubleshooting
+    print_status("🚨 Common Issues & Solutions:", "INFO")
+    print_status("=" * 60)
+    print_status("❌ \"Could not validate credentials\" Error:", "WARNING") 
+    print_status("   Usually caused by corrupted localStorage. Fix in browser console:", "INFO")
+    print_status("   1. localStorage.removeItem('authToken')", "INFO")
+    print_status("   2. Log out and log back in, OR", "INFO")
+    print_status("   3. Run: cd backend && python debug_token.py (for manual fix)", "INFO")
+    print_status("", "INFO")
+    print_status("❌ Server not responding/timeouts:", "WARNING")
+    print_status("   1. Check if servers are running: lsof -i:8000 -i:5173", "INFO")
+    print_status("   2. Restart: python restart_servers_simple.py", "INFO")
+    print_status("   3. Check logs in terminal for specific errors", "INFO")
+    print_status("=" * 60)
 
 if __name__ == "__main__":
     try:
