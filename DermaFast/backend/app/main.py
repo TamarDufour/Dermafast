@@ -6,7 +6,7 @@ from PIL import Image
 import io
 import os
 
-from .models import UserRegister, UserLogin, UserResponse, ErrorResponse, TokenResponse
+from .models import UserRegister, UserLogin, UserResponse, ErrorResponse, TokenResponse, SimilarMoleSelection
 from .auth import AuthService
 from .ml_model import load_model, inference
 from .supabase_client import supabase_client as supabase
@@ -251,6 +251,45 @@ async def analyze_mole(file: UploadFile = File(...), current_user: dict = Depend
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"An error occurred during analysis: {str(e)}")
+
+
+@app.post("/api/save_similar_moles")
+async def save_similar_moles(
+    selection: SimilarMoleSelection,
+    current_user: dict = Depends(AuthService.get_current_user)
+):
+    """
+    Save the user's selection of similar moles.
+    """
+    try:
+        national_id = current_user['national_id']
+        selected_ids = selection.selected_ids
+
+        # Pad the list with None if fewer than 3 images were selected
+        image_ids = selected_ids + [None] * (3 - len(selected_ids))
+
+        # Create the record to insert
+        record = {
+            "national_id": national_id,
+            "image_id1": image_ids[0],
+            "image_id2": image_ids[1],
+            "image_id3": image_ids[2],
+        }
+
+        # Insert into Supabase
+        insert_response = supabase.table("similar_moles_ann_user").insert(record).execute()
+
+        if hasattr(insert_response, 'error') and insert_response.error:
+            raise HTTPException(status_code=500, detail=f"Failed to save selection: {insert_response.error}")
+
+        return {"message": "Selection saved successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 
 @app.get("/")

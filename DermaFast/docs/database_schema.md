@@ -101,6 +101,7 @@ Each row represents a single image, along with its diagnostic and patient-relate
 | `sex`          | `TEXT`        | Sex of the patient (`male`, `female`, or `unknown`).      |
 | `localization` | `TEXT`        | Body location of the mole (e.g., `back`, `face`).         |
 | `uploaded_at`  | `TIMESTAMPTZ` | Timestamp when the row was inserted. Defaults to `now()`. |
+| `embedding`    | `FLOAT[]`     | 256-dim. embedding vector from the CNN’s dropout layer    |
 
 
 # `HAM10000_for_comparison` Bucket
@@ -147,15 +148,33 @@ This table stores the output of the CNN model after a user uploads a mole image.
 
 | Column Name | Type         | Description                                                  |
 |-------------|--------------|--------------------------------------------------------------|
-| `id`        | `SERIAL`     | Auto-incrementing unique ID for each CNN result             |
-| `user_id`   | `Varchar(255)`    | Foreign key referencing `users(id)`                         |
+| `national_id`   | `Varchar(255)` | Foreign key referencing `users(id)`                    |
 | `timestamp` | `TIMESTAMPTZ`| Time of prediction (defaults to `now()`)                    |
 | `cnn_result`| `FLOAT`      | Pribability of the mole to be melanoma               |
-| `embedding` | `FLOAT[]`    | 256-dimensional embedding vector from the CNN’s dropout layer |
+| `embedding` | `FLOAT[]`    | 2D embedding vector from the CNN’s dropout layer    |
 
 ### 🔗 Relationships
 
-- `user_id` references `users(id)` from the `users` table.
 - Each user can have multiple CNN results associated with different mole checks.
+- The primary key for this table is a composite of `national_id` and `timestamp`.
+
+## `similar_moles_ann_user` - Table
+
+This table stores the `image_id`s of up to three moles that the user has identified as being most similar to their own mole.
+
+**Schema**
+
+| Column Name | Type         | Constraints                                       | Description                               |
+|-------------|--------------|---------------------------------------------------|-------------------------------------------|
+| `national_id` | `VARCHAR(255)`| Not Null, Foreign Key to `users.national_id`      | The user who made the selection.          |
+| `timestamp`   | `TIMESTAMPTZ` | Not Null, Default: `now()`                        | Timestamp of the selection.               |
+| `image_id1`   | `TEXT`        | Nullable                                          | The `image_id` of the first selected mole.|
+| `image_id2`   | `TEXT`        | Nullable                                          | The `image_id` of the second selected mole.|
+| `image_id3`   | `TEXT`        | Nullable                                          | The `image_id` of the third selected mole.|
+
+### 🔗 Relationships
+
+- The primary key for this table is a composite of `national_id` and `timestamp`.
+- Each user can have multiple selection records, corresponding to different mole checks.
 
 

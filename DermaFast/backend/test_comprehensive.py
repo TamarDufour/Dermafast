@@ -30,10 +30,14 @@ class DermaFastTester:
     async def cleanup_test_user(self):
         """Clean up any existing test user and results"""
         try:
-            # Clean up test user
-            supabase.table('users').delete().eq('national_id', self.test_user_id).execute()
-            # Clean up test results
+            # Clean up dependent tables first
+            print("   Cleaning up test data...")
             supabase.table('cnn_results').delete().eq('national_id', self.test_user_id).execute()
+            supabase.table('similar_moles_ann_user').delete().eq('national_id', self.test_user_id).execute()
+            
+            # Now, clean up the user
+            supabase.table('users').delete().eq('national_id', self.test_user_id).execute()
+            
             print("   ✅ Cleaned up existing test data")
         except Exception as e:
             print(f"   ⚠️  Cleanup warning: {str(e)}")
@@ -97,7 +101,10 @@ class DermaFastTester:
         try:
             # Load model
             print("   Loading CNN model...")
-            model = load_model()
+            # Construct the absolute path to the model weights file
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.join(base_dir, 'app', 'ml_model', 'model_weights.pkl')
+            model = load_model(model_path)
             print("   ✅ CNN model loaded successfully")
             
             # Create test image
@@ -233,7 +240,54 @@ class DermaFastTester:
         except Exception as e:
             print(f"   ❌ API endpoint test error: {str(e)}")
             return False
-    
+
+    async def test_save_similar_moles_api(self) -> bool:
+        """Test the /api/save_similar_moles endpoint"""
+        print("\n💾 Testing Save Similar Moles API...")
+
+        try:
+            headers = {'Authorization': f'Bearer {self.access_token}', 'Content-Type': 'application/json'}
+            payload = {'selected_ids': ['ISIC_0024306', 'ISIC_0024307']}
+
+            print("   Making HTTP request to /api/save_similar_moles...")
+            response = requests.post(
+                'http://localhost:8000/api/save_similar_moles',
+                json=payload,
+                headers=headers,
+                timeout=15
+            )
+
+            if response.status_code != 200:
+                print(f"   ❌ API request failed with status {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+
+            print("   ✅ API request successful")
+
+            # Verify the data was stored correctly
+            print("   Verifying stored data...")
+            verify_response = supabase.table("similar_moles_ann_user").select("*").eq("national_id", self.test_user_id).order("timestamp", desc=True).limit(1).execute()
+            
+            if not verify_response.data:
+                print("   ❌ Failed to find stored data for verification")
+                return False
+            
+            stored_data = verify_response.data[0]
+            if stored_data['image_id1'] == 'ISIC_0024306' and stored_data['image_id2'] == 'ISIC_0024307' and stored_data['image_id3'] is None:
+                print("   ✅ Data verification successful")
+                return True
+            else:
+                print("   ❌ Stored data does not match payload")
+                print(f"   Stored data: {stored_data}")
+                return False
+
+        except requests.exceptions.ConnectionError:
+            print("   ⚠️  Server not running - skipping save similar moles API test")
+            return True
+        except Exception as e:
+            print(f"   ❌ Save similar moles API test error: {str(e)}")
+            return False
+
     async def run_all_tests(self):
         """Run all comprehensive tests"""
         print("🧪 Starting Comprehensive DermaFast Tests...")
@@ -244,7 +298,8 @@ class DermaFastTester:
             'cnn': False,
             'database': False,
             'faiss': False,
-            'api': False
+            'api': False,
+            'save_moles': False
         }
         
         # Test 1: Authentication
@@ -264,6 +319,9 @@ class DermaFastTester:
                 
                 # Test 5: API Endpoint
                 test_results['api'] = await self.test_api_endpoint(test_image_bytes)
+
+                # Test 6: Save Similar Moles
+                test_results['save_moles'] = await self.test_save_similar_moles_api()
         
         # Clean up
         await self.cleanup_test_user()

@@ -8,6 +8,8 @@ const CheckMolePage = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -32,6 +34,7 @@ const CheckMolePage = () => {
 
     setMessage('Analyzing...');
     setAnalysisResult(null);
+    setSelectedImages([]); // Reset selection on new analysis
 
     try {
       const response = await fetch('http://localhost:8000/api/analyze', {
@@ -53,6 +56,57 @@ const CheckMolePage = () => {
     } catch (error) {
       console.error('Analysis error:', error);
       setMessage(`Error: ${error.message}`);
+    }
+  };
+
+  const handleImageSelect = (imageId) => {
+    setSelectedImages((prevSelected) => {
+      if (prevSelected.includes(imageId)) {
+        return prevSelected.filter((id) => id !== imageId);
+      } else {
+        if (prevSelected.length < 3) {
+          return [...prevSelected, imageId];
+        }
+        return prevSelected;
+      }
+    });
+  };
+
+  const handleSubmitSelection = async () => {
+    const tokenData = JSON.parse(localStorage.getItem('authToken'));
+    if (!tokenData || !tokenData.access_token) {
+      setMessage('You must be logged in to submit your selection.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage('Submitting your selection...');
+
+    try {
+      const response = await fetch('http://localhost:8000/api/save_similar_moles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenData.access_token}`,
+        },
+        body: JSON.stringify({ selected_ids: selectedImages }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to submit selection');
+      }
+
+      setMessage('Your selection has been submitted successfully!');
+      // Optionally, you can redirect the user or clear the selection here
+      // setSelectedImages([]); 
+      // setAnalysisResult(null);
+
+    } catch (error) {
+      console.error('Submission error:', error);
+      setMessage(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -116,33 +170,50 @@ const CheckMolePage = () => {
                   <div className="p-4 bg-blue-50 rounded-md">
                     <h4 className="font-semibold text-gray-800 mb-3">Similar Mole Images</h4>
                     <p className="text-sm text-gray-600 mb-4">
-                      Here are the {analysisResult.similar_images.length} most similar moles from our medical database:
+                      Here are the {analysisResult.similar_images.length} most similar moles from our medical database. Select up to 3 that you think are most similar to your mole.
                     </p>
                     <div className="grid grid-cols-3 gap-3">
-                      {analysisResult.similar_images.map((similarImage, index) => (
-                        <div key={similarImage.image_id} className="relative group">
-                          <img
-                            src={similarImage.image_url}
-                            alt={similarImage.image_id}
-                            className="w-full h-20 object-cover rounded-md border"
-                            onError={(e) => {
-                              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zNS41IDM1LjVMMzUuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxwYXRoIGQ9Ik02NC41IDM1LjVMNjQuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjwvZz4KPC9zdmc+Cg==';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-opacity duration-200 rounded-md flex items-center justify-center">
-                            <div className="opacity-0 group-hover:opacity-100 text-white text-xs text-center p-2 transition-opacity duration-200">
-                              <div className="font-semibold text-xs mb-1">{similarImage.image_id}</div>
-                              <div className="font-semibold">{similarImage.diagnosis.toUpperCase()}</div>
-                              <div>{similarImage.age ? `${similarImage.age}y` : 'Age: N/A'}</div>
-                              <div>{similarImage.sex}</div>
-                              <div>{similarImage.localization}</div>
+                      {analysisResult.similar_images.map((similarImage) => {
+                        const isSelected = selectedImages.includes(similarImage.image_id);
+                        return (
+                          <div 
+                            key={similarImage.image_id} 
+                            className={`relative group cursor-pointer border-2 ${isSelected ? 'border-blue-500' : 'border-transparent'} rounded-md overflow-hidden`}
+                            onClick={() => handleImageSelect(similarImage.image_id)}
+                          >
+                            <img
+                              src={similarImage.image_url}
+                              alt={similarImage.image_id}
+                              className="w-full h-20 object-cover"
+                              onError={(e) => {
+                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zNS41IDM1LjVMMzUuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxwYXRoIGQ9Ik02NC41IDM1LjVMNjQuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjwvZz4KPC9zdmc+Cg==';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-opacity duration-200 flex items-center justify-center">
+                              <div className="opacity-0 group-hover:opacity-100 text-white text-xs text-center p-2 transition-opacity duration-200">
+                                <div className="font-semibold text-xs mb-1">{similarImage.image_id}</div>
+                                <div className="font-semibold">{similarImage.diagnosis.toUpperCase()}</div>
+                                <div>{similarImage.age ? `${similarImage.age}y` : 'Age: N/A'}</div>
+                                <div>{similarImage.sex}</div>
+                                <div>{similarImage.localization}</div>
+                              </div>
                             </div>
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 bg-blue-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+                                ✓
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4">
+                      <Button onClick={handleSubmitSelection} disabled={isSubmitting || selectedImages.length === 0} className="w-full">
+                        {isSubmitting ? 'Submitting...' : `Next for Recommendation (${selectedImages.length} selected)`}
+                      </Button>
                     </div>
                     <div className="mt-3 text-xs text-gray-500">
-                      <p><strong>Legend:</strong> Hover over images to see details. These are similar cases from medical literature to help provide context.</p>
+                      <p><strong>Legend:</strong> Hover over images to see details. Click to select up to 3 images.</p>
                       <p className="mt-1"><strong>Note:</strong> This tool is for educational purposes only and should not replace professional medical advice.</p>
                     </div>
                   </div>
@@ -162,7 +233,7 @@ const CheckMolePage = () => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleAnalyze} className="w-full">
+          <Button onClick={handleAnalyze} className="w-full" disabled={!file || message === 'Analyzing...'}>
             Analyze
           </Button>
         </CardFooter>

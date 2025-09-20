@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
 
 class UserRegister(BaseModel):
     national_id: str
@@ -23,3 +23,10 @@ class TokenResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     message: str
+
+class MoleAnalysisRequest(BaseModel):
+    national_id: str
+    image_base64: str
+
+class SimilarMoleSelection(BaseModel):
+    selected_ids: List[str] = Field(..., max_items=3)
