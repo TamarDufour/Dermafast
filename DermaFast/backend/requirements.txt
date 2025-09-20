@@ -13,3 +13,5 @@ python-multipart==0.0.9
 gotrue==2.9.2
 faiss-cpu>=1.9.0
 numpy>=1.24.0
+pytest
+httpx

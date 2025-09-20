@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 import io
+import os
 
 # Image transformation
 val_transform = transforms.Compose([
@@ -51,15 +52,40 @@ class BasicCNN(nn.Module):
         
         return classification, embedding
 
-def load_model(model_path='app/ml_model/model_weights.pkl'):
-    """Load the BasicCNN model from the specified path."""
+def load_model():
+    """
+    Load the pre-trained model from the specified path.
+    """
     try:
+        # Get the absolute path to the directory of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Construct the absolute path to the model weights, assuming the script is in backend/app/
+        model_path = os.path.join(script_dir, 'ml_model', 'model_weights.pkl')
+        
+        print(f"Loading model from: {model_path}")
+
+        # Check if the file exists before attempting to load
+        if not os.path.exists(model_path):
+            # Fallback for when script is run from a different structure, e.g. tests
+            app_dir = os.path.join(os.path.dirname(script_dir), "app")
+            model_path = os.path.join(app_dir, 'ml_model', 'model_weights.pkl')
+            print(f"Fallback: Loading model from: {model_path}")
+            if not os.path.exists(model_path):
+                 raise FileNotFoundError(f"Model file not found at: {model_path}")
+
         model = BasicCNN()
+        # The state dict is loaded from a pickled file, not directly from .pth
         model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-        model.eval()
+        model.eval()  # Set the model to evaluation mode
+        print("Model loaded successfully.")
         return model
+    except FileNotFoundError as e:
+        print(f"Error loading model from {model_path}: {e}")
+        raise e
     except Exception as e:
-        print(f"Error loading model from {model_path}: {str(e)}")
+        # General exception for other potential errors (e.g., torch issues)
+        print(f"An unexpected error occurred while loading the model: {e}")
         raise e
 
 def inference(model: nn.Module, image_bytes: bytes):

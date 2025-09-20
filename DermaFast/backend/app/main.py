@@ -259,7 +259,7 @@ async def save_similar_moles(
     current_user: dict = Depends(AuthService.get_current_user)
 ):
     """
-    Save the user's selection of similar moles.
+    Save the user's selection of similar moles and return a recommendation.
     """
     try:
         national_id = current_user['national_id']
@@ -282,7 +282,58 @@ async def save_similar_moles(
         if hasattr(insert_response, 'error') and insert_response.error:
             raise HTTPException(status_code=500, detail=f"Failed to save selection: {insert_response.error}")
 
-        return {"message": "Selection saved successfully"}
+        # --- Recommendation Logic ---
+
+        # 1. Get latest CNN result
+        cnn_response = supabase.table("cnn_results").select("cnn_result").eq("national_id", national_id).order("timestamp", desc=True).limit(1).execute()
+        latest_cnn_result = cnn_response.data[0]['cnn_result'] if cnn_response.data else None
+
+        # 2. Get latest questionnaire answers
+        questionnaire_response = supabase.table("mole_questionnaires").select("q1, q2, q3, q4, q5").eq("national_id", national_id).order("timestamp", desc=True).limit(1).execute()
+        yes_answers = 0
+        if questionnaire_response.data:
+            answers = questionnaire_response.data[0]
+            yes_answers = sum(1 for q in ['q1', 'q2', 'q3', 'q4', 'q5'] if answers.get(q) is True)
+
+        # 3. Check diagnosis of selected similar moles
+        has_melanoma_selection = False
+        if selected_ids:
+            metadata_response = supabase.table("ham_metadata").select("dx").in_("image_id", selected_ids).eq("dx", "mel").execute()
+            if metadata_response.data:
+                has_melanoma_selection = True
+
+        # --- Determine Recommendation ---
+        
+        plastic_surgeon_msg = "According to the data you have provided to DermaFast, we highly recommend you schedule a meeting with a plastic surgeon."
+        dermatologist_msg = "According to the data you have provided to DermaFast, we highly recommend you schedule a meeting with a dermatologist."
+        monitoring_msg = "According to the data you have provided to DermaFast, we highly recommend you continue monitoring your moles and beauty marks, and visit a dermatologist at least once a year."
+
+        recommendation_message = ""
+
+        # Condition for Plastic Surgeon
+        is_plastic_surgeon_case = (
+            (latest_cnn_result is not None and latest_cnn_result >= 0.4) or
+            (yes_answers >= 2) or
+            has_melanoma_selection
+        )
+
+        if is_plastic_surgeon_case:
+            recommendation_message = plastic_surgeon_msg
+        else:
+            # Condition for Dermatologist
+            is_dermatologist_case = (
+                (latest_cnn_result is not None and 0.2 < latest_cnn_result < 0.4) or
+                (yes_answers == 1)
+            )
+            if is_dermatologist_case:
+                recommendation_message = dermatologist_msg
+            else:
+                recommendation_message = monitoring_msg
+        
+        return {
+            "message": "Selection saved successfully",
+            "recommendation": recommendation_message
+        }
 
     except HTTPException:
         raise

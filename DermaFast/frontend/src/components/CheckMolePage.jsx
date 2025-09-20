@@ -10,6 +10,8 @@ const CheckMolePage = () => {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [selectedImages, setSelectedImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recommendation, setRecommendation] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -96,11 +98,14 @@ const CheckMolePage = () => {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Failed to submit selection');
       }
-
+      
+      const result = await response.json();
       setMessage('Your selection has been submitted successfully!');
-      // Optionally, you can redirect the user or clear the selection here
-      // setSelectedImages([]); 
-      // setAnalysisResult(null);
+
+      if (result.recommendation) {
+        setRecommendation(result.recommendation);
+        setIsModalOpen(true);
+      }
 
     } catch (error) {
       console.error('Submission error:', error);
@@ -108,6 +113,11 @@ const CheckMolePage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setRecommendation('');
   };
 
   return (
@@ -238,6 +248,16 @@ const CheckMolePage = () => {
           </Button>
         </CardFooter>
       </Card>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+            <h3 className="text-lg font-bold mb-4">Recommendation</h3>
+            <p className="mb-6">{recommendation}</p>
+            <Button onClick={closeModal}>Close</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
