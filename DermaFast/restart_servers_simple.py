@@ -303,21 +303,6 @@ def main():
     print_status("  • Run tests: cd backend && python test_comprehensive.py", "INFO")
     print_status("  • Debug tokens: cd backend && python debug_token.py", "INFO")
     print_status("=" * 60)
-    
-    # Common troubleshooting
-    print_status("🚨 Common Issues & Solutions:", "INFO")
-    print_status("=" * 60)
-    print_status("❌ \"Could not validate credentials\" Error:", "WARNING") 
-    print_status("   Usually caused by corrupted localStorage. Fix in browser console:", "INFO")
-    print_status("   1. localStorage.removeItem('authToken')", "INFO")
-    print_status("   2. Log out and log back in, OR", "INFO")
-    print_status("   3. Run: cd backend && python debug_token.py (for manual fix)", "INFO")
-    print_status("", "INFO")
-    print_status("❌ Server not responding/timeouts:", "WARNING")
-    print_status("   1. Check if servers are running: lsof -i:8000 -i:5173", "INFO")
-    print_status("   2. Restart: python restart_servers_simple.py", "INFO")
-    print_status("   3. Check logs in terminal for specific errors", "INFO")
-    print_status("=" * 60)
 
 if __name__ == "__main__":
     try:

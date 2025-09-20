@@ -84,26 +84,14 @@ async def debug_token_issue():
         print(f"   ❌ Token validation failed: {e}")
     
     # Provide browser debugging info
-    print("\n💻 Browser localStorage Fix:")
+    print("\n💻 Browser Debugging Info:")
     print("=" * 40)
-    print("If you get 'Could not validate credentials' error:")
-    print("Open browser console (F12) and run these commands:")
-    print()
-    print("1. Clear corrupted token:")
-    print("   localStorage.removeItem('authToken');")
-    print()
-    print("2. Set correct token (copy this exactly):")
-    import json
-    localStorage_cmd = f"localStorage.setItem('authToken', '{json.dumps(user_info)}');"
-    print(f"   {localStorage_cmd}")
-    print()
-    print("3. Verify it worked:")
-    print("   console.log(JSON.parse(localStorage.getItem('authToken')));")
-    print()
-    print("4. Refresh the page and try analyzing a mole again.")
-    print()
-    print("💡 Alternative: Simply log out and log back in!")
-    print("=" * 40)
+    print("In your browser console, check:")
+    print("1. localStorage.getItem('authToken')")
+    print("2. Make sure the token is stored as JSON:")
+    print(f"   {user_info}")
+    print("\n3. Check network requests include header:")
+    print(f"   Authorization: Bearer {token}")
     
     # Clean up test user if created
     if test_national_id == "debug_user_123":

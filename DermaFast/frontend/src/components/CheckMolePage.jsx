@@ -123,7 +123,7 @@ const CheckMolePage = () => {
                         <div key={similarImage.image_id} className="relative group">
                           <img
                             src={similarImage.image_url}
-                            alt={`Similar mole ${index + 1}`}
+                            alt={similarImage.image_id}
                             className="w-full h-20 object-cover rounded-md border"
                             onError={(e) => {
                               e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zNS41IDM1LjVMMzUuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxwYXRoIGQ9Ik02NC41IDM1LjVMNjQuNSA2NC41IiBzdHJva2U9IiM2QjcyODAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjwvZz4KPC9zdmc+Cg==';
@@ -131,6 +131,7 @@ const CheckMolePage = () => {
                           />
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-opacity duration-200 rounded-md flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 text-white text-xs text-center p-2 transition-opacity duration-200">
+                              <div className="font-semibold text-xs mb-1">{similarImage.image_id}</div>
                               <div className="font-semibold">{similarImage.diagnosis.toUpperCase()}</div>
                               <div>{similarImage.age ? `${similarImage.age}y` : 'Age: N/A'}</div>
                               <div>{similarImage.sex}</div>
