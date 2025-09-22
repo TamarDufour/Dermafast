@@ -203,9 +203,6 @@ const CheckMolePage = () => {
                               <div className="opacity-0 group-hover:opacity-100 text-white text-xs text-center p-2 transition-opacity duration-200">
                                 <div className="font-semibold text-xs mb-1">{similarImage.image_id}</div>
                                 <div className="font-semibold">{similarImage.diagnosis.toUpperCase()}</div>
-                                <div>{similarImage.age ? `${similarImage.age}y` : 'Age: N/A'}</div>
-                                <div>{similarImage.sex}</div>
-                                <div>{similarImage.localization}</div>
                               </div>
                             </div>
                             {isSelected && (
@@ -224,7 +221,6 @@ const CheckMolePage = () => {
                     </div>
                     <div className="mt-3 text-xs text-gray-500">
                       <p><strong>Legend:</strong> Hover over images to see details. Click to select up to 3 images.</p>
-                      <p className="mt-1"><strong>Note:</strong> This tool is for educational purposes only and should not replace professional medical advice.</p>
                     </div>
                   </div>
                 ) : (

@@ -32,6 +32,7 @@ const questions = [
 const MoleQuestionnairePage = ({ nationalId }) => {
   const [answers, setAnswers] = useState({});
   const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleValueChange = (questionId, value) => {
@@ -64,8 +65,7 @@ const MoleQuestionnairePage = ({ nationalId }) => {
         }
 
         console.log("Questionnaire submitted successfully:", data);
-        alert("Questionnaire submitted successfully!");
-        navigate('/check-mole');
+        setShowSuccess(true);
     } catch (error) {
         console.error("Error submitting questionnaire:", error);
         alert(`Error submitting questionnaire: ${error.message}`);
@@ -107,6 +107,24 @@ const MoleQuestionnairePage = ({ nationalId }) => {
           </form>
         </CardContent>
       </Card>
+
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Questionnaire submitted successfully!</h2>
+            <p>please move on to the next step.</p>
+            <Button
+              onClick={() => {
+                setShowSuccess(false);
+                navigate('/check-mole');
+              }}
+              className="mt-4"
+            >
+              Next Step
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

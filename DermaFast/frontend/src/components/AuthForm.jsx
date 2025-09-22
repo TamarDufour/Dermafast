@@ -65,12 +65,17 @@ const AuthForm = ({ onLogin }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {isLoginMode ? 'Sign in to DermaFast' : 'Create DermaFast Account'}
+            {isLoginMode ? 'Welcome to DermaFast!' : 'Create DermaFast Account'}
           </h2>
+          {isLoginMode && (
+            <p className="mt-2 text-center text-md text-gray-600">
+              The First Step in Caring for Moles and Skin Spots
+            </p>
+          )}
           <p className="mt-2 text-center text-sm text-gray-600">
             {isLoginMode ? "Don't have an account?" : 'Already have an account?'}{' '}
             <button
@@ -158,6 +163,13 @@ const AuthForm = ({ onLogin }) => {
             </p>
           </div>
         </form>
+      </div>
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none" style={{ height: '35vh' }}>
+        <img
+          src="/signin page.png"
+          alt="Sign In Illustration"
+          className="h-full object-contain"
+        />
       </div>
     </div>
   )

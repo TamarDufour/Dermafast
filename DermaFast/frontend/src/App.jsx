@@ -53,10 +53,6 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={!isAuthenticated ? <AuthForm onLogin={handleLogin} /> : <Navigate to="/home" />}
-          />
-          <Route
-            path="/home"
             element={
               isAuthenticated ? (
                 <HomePage
@@ -64,7 +60,7 @@ function App() {
                   onLogout={handleLogout}
                 />
               ) : (
-                <Navigate to="/" />
+                <AuthForm onLogin={handleLogin} />
               )
             }
           />
