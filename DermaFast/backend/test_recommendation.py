@@ -17,6 +17,7 @@ mock_supabase_client = MagicMock()
 
 @pytest.fixture(autouse=True)
 def override_supabase_client():
+    mock_supabase_client.reset_mock()
     with patch('backend.app.main.supabase', mock_supabase_client):
         yield
 
@@ -35,6 +36,13 @@ def test_recommendation_plastic_surgeon_high_cnn():
     data = response.json()
     assert "plastic surgeon" in data["recommendation"]
 
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
+
 def test_recommendation_plastic_surgeon_many_yes_answers():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
@@ -50,6 +58,13 @@ def test_recommendation_plastic_surgeon_many_yes_answers():
     data = response.json()
     assert "plastic surgeon" in data["recommendation"]
 
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
+
 def test_recommendation_plastic_surgeon_melanoma_selection():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
@@ -64,6 +79,13 @@ def test_recommendation_plastic_surgeon_melanoma_selection():
     assert response.status_code == 200
     data = response.json()
     assert "plastic surgeon" in data["recommendation"]
+
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
 
 def test_recommendation_dermatologist_medium_cnn():
     # Mock Supabase responses
@@ -81,6 +103,13 @@ def test_recommendation_dermatologist_medium_cnn():
     assert "dermatologist" in data["recommendation"]
     assert "plastic surgeon" not in data["recommendation"]
 
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
+
 def test_recommendation_dermatologist_one_yes_answer():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
@@ -97,6 +126,13 @@ def test_recommendation_dermatologist_one_yes_answer():
     assert "dermatologist" in data["recommendation"]
     assert "plastic surgeon" not in data["recommendation"]
 
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
+
 def test_recommendation_monitoring():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
@@ -112,6 +148,13 @@ def test_recommendation_monitoring():
     data = response.json()
     assert "continue monitoring" in data["recommendation"]
 
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })
+
 def test_recommendation_plastic_surgeon_cnn_exact_0_4():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
@@ -126,3 +169,10 @@ def test_recommendation_plastic_surgeon_cnn_exact_0_4():
     assert response.status_code == 200
     data = response.json()
     assert "plastic surgeon" in data["recommendation"]
+
+    # Verify final_recommendation insert was called
+    mock_supabase_client.table.assert_any_call("final_recommendation")
+    mock_supabase_client.table.return_value.insert.assert_called_with({
+        "national_id": "test_user",
+        "recommendation": data["recommendation"]
+    })

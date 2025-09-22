@@ -330,6 +330,16 @@ async def save_similar_moles(
             else:
                 recommendation_message = monitoring_msg
         
+        # --- Store Recommendation in the new table ---
+        try:
+            supabase.table("final_recommendation").insert({
+                "national_id": national_id,
+                "recommendation": recommendation_message
+            }).execute()
+        except Exception as e:
+            # Log the error but don't fail the request
+            print(f"Could not save recommendation to 'final_recommendation' table: {e}")
+
         return {
             "message": "Selection saved successfully",
             "recommendation": recommendation_message

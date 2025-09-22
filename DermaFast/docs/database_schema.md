@@ -178,3 +178,19 @@ This table stores the `image_id`s of up to three moles that the user has identif
 - Each user can have multiple selection records, corresponding to different mole checks.
 
 
+## `final_recommendation` - Table
+
+This table stores the final recommendation for a user's mole.
+
+**Schema**
+
+| Column          | Type        | Constraints                          | Description                               |
+|-----------------|-------------|--------------------------------------|-------------------------------------------|
+| `id`            | `uuid`      | Primary Key, Default: `gen_random_uuid()` | Unique identifier for each recommendation. |
+| `national_id`   | `text`      | Not Null, Foreign Key to `users.id` | The user who received the recommendation. |
+| `timestamp`     | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was made. |
+| `recommendation`| `text`      | Not Null                             | The text of the recommendation.           |
+| `created_at`    | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was created. |
+| `updated_at`    | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was last updated. |
+
+
