@@ -312,7 +312,7 @@ async def save_similar_moles(
 
         # Condition for Plastic Surgeon
         is_plastic_surgeon_case = (
-            (latest_cnn_result is not None and latest_cnn_result >= 0.4) or
+            (latest_cnn_result is not None and latest_cnn_result >= 0.3) or
             (yes_answers >= 2) or
             has_melanoma_selection
         )
@@ -322,7 +322,7 @@ async def save_similar_moles(
         else:
             # Condition for Dermatologist
             is_dermatologist_case = (
-                (latest_cnn_result is not None and 0.2 < latest_cnn_result < 0.4) or
+                (latest_cnn_result is not None and 0.15 < latest_cnn_result < 0.3) or
                 (yes_answers == 1)
             )
             if is_dermatologist_case:

@@ -25,7 +25,7 @@ def test_recommendation_plastic_surgeon_high_cnn():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
     mock_supabase_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.side_effect = [
-        MagicMock(data=[{"cnn_result": 0.5}]), # High CNN result
+        MagicMock(data=[{"cnn_result": 0.35}]), # High CNN result
         MagicMock(data=[{"q1": False, "q2": False, "q3": False, "q4": False, "q5": False}]), # 0 yes answers
     ]
     mock_supabase_client.table.return_value.select.return_value.in_.return_value.eq.return_value.execute.return_value = MagicMock(data=[]) # No melanoma selected
@@ -91,7 +91,7 @@ def test_recommendation_dermatologist_medium_cnn():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
     mock_supabase_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.side_effect = [
-        MagicMock(data=[{"cnn_result": 0.3}]), # Medium CNN result
+        MagicMock(data=[{"cnn_result": 0.25}]), # Medium CNN result
         MagicMock(data=[{"q1": False, "q2": False, "q3": False, "q4": False, "q5": False}]), # 0 yes answers
     ]
     mock_supabase_client.table.return_value.select.return_value.in_.return_value.eq.return_value.execute.return_value = MagicMock(data=[]) # No melanoma selected
@@ -155,11 +155,11 @@ def test_recommendation_monitoring():
         "recommendation": data["recommendation"]
     })
 
-def test_recommendation_plastic_surgeon_cnn_exact_0_4():
+def test_recommendation_plastic_surgeon_cnn_exact_0_3():
     # Mock Supabase responses
     mock_supabase_client.table.return_value.insert.return_value.execute.return_value = MagicMock(error=None)
     mock_supabase_client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.side_effect = [
-        MagicMock(data=[{"cnn_result": 0.4}]), # CNN result exactly 0.4
+        MagicMock(data=[{"cnn_result": 0.3}]), # CNN result exactly 0.3
         MagicMock(data=[{"q1": False, "q2": False, "q3": False, "q4": False, "q5": False}]), # 0 yes answers
     ]
     mock_supabase_client.table.return_value.select.return_value.in_.return_value.eq.return_value.execute.return_value = MagicMock(data=[]) # No melanoma selected

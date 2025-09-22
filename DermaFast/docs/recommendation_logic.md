@@ -14,7 +14,7 @@ Based on these inputs, one of three recommendations is provided.
 
 A user is advised to see a plastic surgeon if any of the following conditions are met:
 
-*   The **CNN model's confidence score** for the mole being malignant is **40% or higher** (a score of `>= 0.4`).
+*   The **CNN model's confidence score** for the mole being malignant is **30% or higher** (a score of `>= 0.3`).
 *   The user answers **"Yes" to two or more questions** in the mole questionnaire.
 *   The user selects **at least one mole** from the similar moles page that is a **known melanoma**.
 
@@ -22,7 +22,7 @@ A user is advised to see a plastic surgeon if any of the following conditions ar
 
 If the conditions for a plastic surgeon recommendation are not met, the system will then check for the following conditions to recommend a visit to a dermatologist:
 
-*   The **CNN model's confidence score** is between **20% and 40%** (a score of `> 0.2` and `< 0.4`).
+*   The **CNN model's confidence score** is between **15% and 30%** (a score of `> 0.15` and `< 0.3`).
 *   The user answers **"Yes" to exactly one question** in the mole questionnaire.
 
 ### 3. Low Urgency: "Continue Monitoring"
