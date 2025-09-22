@@ -190,7 +190,6 @@ This table stores the final recommendation for a user's mole.
 | `national_id`   | `text`      | Not Null, Foreign Key to `users.id` | The user who received the recommendation. |
 | `timestamp`     | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was made. |
 | `recommendation`| `text`      | Not Null                             | The text of the recommendation.           |
-| `created_at`    | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was created. |
-| `updated_at`    | `timestamptz` | Not Null, Default: `now()`           | Timestamp of when the recommendation was last updated. |
+
 
 
