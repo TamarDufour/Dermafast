@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const CheckMolePage = () => {
+const CheckLesionPage = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -27,7 +27,7 @@ const CheckMolePage = () => {
     // Retrieve token from local storage
     const tokenData = JSON.parse(localStorage.getItem('authToken'));
     if (!tokenData || !tokenData.access_token) {
-        setMessage('You must be logged in to analyze a mole.');
+        setMessage('You must be logged in to analyze a lesion.');
         return;
     }
 
@@ -124,38 +124,38 @@ const CheckMolePage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle>Check a Mole</CardTitle>
-          <CardDescription>Upload a picture of a mole for analysis.</CardDescription>
+          <CardTitle>Check a Lesion</CardTitle>
+          <CardDescription>Upload a picture of a lesion for analysis.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4 text-sm text-gray-700">
-            <h3 className="font-semibold text-base text-gray-900">Instructions for Uploading Mole Photos</h3>
+            <h3 className="font-semibold text-base text-gray-900">Instructions for Uploading Lesion Photos</h3>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold">Only One Photo Per Mole</h4>
+                <h4 className="font-semibold">Only One Photo Per Lesion</h4>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li>Upload one clear photo of the mole.</li>
+                  <li>Upload one clear photo of the lesion.</li>
                   <li>Make sure it’s well-framed and focused.</li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold">Auto-Focus on the Mole</h4>
+                <h4 className="font-semibold">Auto-Focus on the Lesion</h4>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>Let your smartphone auto-focus before taking the photo.</li>
-                  <li>Wait a second to let the camera focus specifically on the mole.</li>
+                  <li>Wait a second to let the camera focus specifically on the lesion.</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold">Don’t Get Too Close</h4>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>Being too close may cause the photo to be blurry.</li>
-                  <li>Instead, step back slightly and use zoom to capture the mole clearly.</li>
+                  <li>Instead, step back slightly and use zoom to capture the lesion clearly.</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold">Review Your Photo Before Uploading</h4>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li>Ensure the mole is in focus, centered, and well-lit.</li>
+                  <li>Ensure the lesion is in focus, centered, and well-lit.</li>
                   <li>Poor image quality can prevent accurate diagnosis.</li>
                 </ul>
               </div>
@@ -163,7 +163,7 @@ const CheckMolePage = () => {
           </div>
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="mole-picture">Mole Picture</Label>
+              <Label htmlFor="mole-picture">Lesion Picture</Label>
               <Input id="mole-picture" type="file" onChange={handleFileChange} />
             </div>
             {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
@@ -178,9 +178,9 @@ const CheckMolePage = () => {
                 
                 {analysisResult.similar_images && analysisResult.similar_images.length > 0 ? (
                   <div className="p-4 bg-blue-50 rounded-md">
-                    <h4 className="font-semibold text-gray-800 mb-3">Similar Mole Images</h4>
+                    <h4 className="font-semibold text-gray-800 mb-3">Similar Lesion Images</h4>
                     <p className="text-sm text-gray-600 mb-4">
-                      Here are the {analysisResult.similar_images.length} most similar moles from our medical database. Select up to 3 that you think are most similar to your mole.
+                      Here are the {analysisResult.similar_images.length} most similar lesions from our medical database. Select up to 3 that you think are most similar to your lesion.
                     </p>
                     <div className="grid grid-cols-3 gap-3">
                       {analysisResult.similar_images.map((similarImage) => {
@@ -227,7 +227,7 @@ const CheckMolePage = () => {
                   <div className="p-4 bg-yellow-50 rounded-md">
                     <h4 className="font-semibold text-gray-800 mb-2">Similar Images</h4>
                     <p className="text-sm text-gray-600">
-                      Similar image comparison is temporarily unavailable. Your mole analysis result above is still accurate.
+                      Similar image comparison is temporarily unavailable. Your lesion analysis result above is still accurate.
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
                       <strong>Note:</strong> The similarity feature requires database preparation and will be available soon.
@@ -258,4 +258,4 @@ const CheckMolePage = () => {
   );
 };
 
-export default CheckMolePage;
+export default CheckLesionPage;

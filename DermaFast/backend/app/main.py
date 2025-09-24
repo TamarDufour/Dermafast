@@ -304,7 +304,7 @@ async def save_similar_moles(
 
         # --- Determine Recommendation ---
         
-        plastic_surgeon_msg = "According to the data you have provided to DermaFast, we highly recommend you schedule a meeting with a plastic surgeon."
+        plastic_surgeon_msg = "According to the data you have provided to DermaFast, we highly recommend you schedule a meeting with a plastic surgeon as soon as possible."
         dermatologist_msg = "According to the data you have provided to DermaFast, we highly recommend you schedule a meeting with a dermatologist."
         monitoring_msg = "According to the data you have provided to DermaFast, we highly recommend you continue monitoring your moles and beauty marks, and visit a dermatologist at least once a year."
 

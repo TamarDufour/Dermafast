@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import AuthForm from './components/AuthForm';
 import HomePage from './components/HomePage';
-import CheckMolePage from './components/CheckMolePage';
-import MoleQuestionnairePage from './components/MoleQuestionnairePage';
+import CheckLesionPage from './components/CheckLesionPage';
+import LesionQuestionnairePage from './components/LesionQuestionnairePage';
 import './App.css';
 
 function App() {
@@ -65,12 +65,12 @@ function App() {
             }
           />
           <Route
-            path="/check-mole"
-            element={isAuthenticated ? <CheckMolePage /> : <Navigate to="/" />}
+            path="/check-lesion"
+            element={isAuthenticated ? <CheckLesionPage /> : <Navigate to="/" />}
           />
           <Route
             path="/questionnaire"
-            element={isAuthenticated ? <MoleQuestionnairePage nationalId={user?.nationalId} /> : <Navigate to="/" />}
+            element={isAuthenticated ? <LesionQuestionnairePage nationalId={user?.nationalId} /> : <Navigate to="/" />}
           />
         </Routes>
       </div>

@@ -73,7 +73,7 @@ const AuthForm = ({ onLogin }) => {
           </h2>
           {isLoginMode && (
             <p className="mt-2 text-center text-md text-gray-600">
-              The First Step in Caring for Moles and Skin Spots
+              The First Step in Caring for Lesions and Skin Spots
             </p>
           )}
           <p className="mt-2 text-center text-sm text-gray-600">

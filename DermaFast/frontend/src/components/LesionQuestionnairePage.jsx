@@ -9,15 +9,15 @@ import { supabase } from "@/supabase";
 const questions = [
   {
     id: 'asymmetry',
-    text: '1. When you look at the mole, does one half look different from the other half in shape or thickness?'
+    text: '1. When you look at the lesion, does one half look different from the other half in shape or thickness?'
   },
   {
     id: 'border',
-    text: '2. Have you noticed if the edges of the mole look ragged, notched, or blurred rather than smooth?'
+    text: '2. Have you noticed if the edges of the lesion look ragged, notched, or blurred rather than smooth?'
   },
   {
     id: 'color',
-    text: '3. Do you see more than one color in the mole, such as brown, black, red, white, or blue?'
+    text: '3. Do you see more than one color in the lesion, such as brown, black, red, white, or blue?'
   },
   {
     id: 'diameter',
@@ -25,11 +25,11 @@ const questions = [
   },
   {
     id: 'evolution',
-    text: '5. Has the mole changed recently in size, shape, color, or caused any new symptoms like itching, bleeding, or crusting?'
+    text: '5. Has the lesion changed recently in size, shape, color, or caused any new symptoms like itching, bleeding, or crusting?'
   }
 ];
 
-const MoleQuestionnairePage = ({ nationalId }) => {
+const LesionQuestionnairePage = ({ nationalId }) => {
   const [answers, setAnswers] = useState({});
   const [error, setError] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -76,8 +76,8 @@ const MoleQuestionnairePage = ({ nationalId }) => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Mole Questionnaire</CardTitle>
-          <CardDescription>Please answer the following questions about the mole.</CardDescription>
+          <CardTitle>Lesion Questionnaire</CardTitle>
+          <CardDescription>Please answer the following questions about the lesion.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -116,7 +116,7 @@ const MoleQuestionnairePage = ({ nationalId }) => {
             <Button
               onClick={() => {
                 setShowSuccess(false);
-                navigate('/check-mole');
+                navigate('/check-lesion');
               }}
               className="mt-4"
             >
@@ -129,4 +129,4 @@ const MoleQuestionnairePage = ({ nationalId }) => {
   );
 };
 
-export default MoleQuestionnairePage;
+export default LesionQuestionnairePage;

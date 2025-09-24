@@ -19,7 +19,7 @@ const HomePage = ({ username, onLogout }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <Link to="/questionnaire" className="block">
-            <Button className="w-full">Check a Mole</Button>
+            <Button className="w-full">Check a Lesion</Button>
           </Link>
         </CardContent>
         <CardFooter>

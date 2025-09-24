@@ -101,7 +101,7 @@ The script will create the following tables:
 
 Once the setup is complete, you can run the application using one of the following methods.
 
-### Manual Startup
+### Manual Startup - No recommended at all!
 
 You'll need two separate terminals to run the frontend and backend servers independently.
 
@@ -123,7 +123,7 @@ You'll need two separate terminals to run the frontend and backend servers indep
 
 Several Python scripts are provided in the root directory to simplify the process of stopping and starting the servers.
 
-#### `restart_servers_simple.py` (Highly Recommended!)
+#### Using `restart_servers_simple.py` - Highly Recommended!
 
 This script stops any running server processes and restarts them in the background. It does not require any additional dependencies.
 
