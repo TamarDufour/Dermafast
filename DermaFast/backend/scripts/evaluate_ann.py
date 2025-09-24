@@ -17,7 +17,11 @@ async def evaluate_ann():
     """
     print("Starting ANN evaluation script...")
 
-    # Load model
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(script_dir, '..', '..'))
+
+    # Load the model and FAISS service
     print("Loading model...")
     model = load_model()
     print("Model loaded.")
@@ -32,8 +36,8 @@ async def evaluate_ann():
 
     # Load test data and metadata
     print("Loading test data and metadata...")
-    test_moles_df = pd.read_csv('backend/scripts/test_moles_ann_mel.csv')
-    metadata_df = pd.read_csv('moles_data/HAM10000_metadata.csv')
+    test_moles_df = pd.read_csv(os.path.join(script_dir, 'non_training_moles.csv'))
+    metadata_df = pd.read_csv(os.path.join(project_root, 'moles_data', 'HAM10000_metadata.csv'))
     
     # Create a mapping from image_id to diagnosis for quick lookup
     image_id_to_dx = pd.Series(metadata_df.dx.values, index=metadata_df.image_id).to_dict()
@@ -50,13 +54,19 @@ async def evaluate_ann():
     zero_matches_count = 0
     processed_count = 0
 
+    non_melanoma_group_results = {
+        'precisions': [], 'count': 0, 'at_least_3_matches': 0,
+        'at_least_5_matches': 0, 'at_least_6_matches': 0,
+        'at_least_8_matches': 0, 'zero_matches': 0
+    }
+
     k = 9
 
     for index, row in test_moles_df.iterrows():
         query_image_id = row['image_id']
         
-        image_path_1 = f'moles_data/HAM10000_images_part_1/{query_image_id}.jpg'
-        image_path_2 = f'moles_data/HAM10000_images_part_2/{query_image_id}.jpg'
+        image_path_1 = os.path.join(project_root, f'moles_data/HAM10000_images_part_1/{query_image_id}.jpg')
+        image_path_2 = os.path.join(project_root, f'moles_data/HAM10000_images_part_2/{query_image_id}.jpg')
         
         image_path = None
         if os.path.exists(image_path_1):
@@ -125,6 +135,25 @@ async def evaluate_ann():
         if true_positives == 0:
             results_by_dx[query_dx]['zero_matches'] += 1
 
+        # For non-melanoma images, calculate binary performance (any non-melanoma is a match)
+        if query_dx != 'mel':
+            binary_true_positives = sum(1 for res_id in retrieved_ids if image_id_to_dx.get(res_id) != 'mel')
+            
+            non_melanoma_group_results['count'] += 1
+            precision_at_k_binary = binary_true_positives / k
+            non_melanoma_group_results['precisions'].append(precision_at_k_binary)
+
+            if binary_true_positives >= 3:
+                non_melanoma_group_results['at_least_3_matches'] += 1
+            if binary_true_positives >= 5:
+                non_melanoma_group_results['at_least_5_matches'] += 1
+            if binary_true_positives >= 6:
+                non_melanoma_group_results['at_least_6_matches'] += 1
+            if binary_true_positives >= 8:
+                non_melanoma_group_results['at_least_8_matches'] += 1
+            if binary_true_positives == 0:
+                non_melanoma_group_results['zero_matches'] += 1
+
         print(f"  -> Query diagnosis: {query_dx}")
         print(f"  -> Found {true_positives}/{k} similar moles with the same diagnosis.")
         print(f"  -> Precision@{k}: {precision_at_k:.4f}")
@@ -136,6 +165,74 @@ async def evaluate_ann():
     percent_at_least_6_matches = (at_least_6_matches_count / processed_count * 100) if processed_count > 0 else 0
     percent_at_least_8_matches = (at_least_8_matches_count / processed_count * 100) if processed_count > 0 else 0
     percent_zero_matches = (zero_matches_count / processed_count * 100) if processed_count > 0 else 0
+
+    # --- Calculate final non-melanoma group metrics ---
+    if non_melanoma_group_results['count'] > 0:
+        avg_precision_nm = np.mean(non_melanoma_group_results['precisions'])
+        count_nm = non_melanoma_group_results['count']
+        percent_at_least_3_nm = (non_melanoma_group_results['at_least_3_matches'] / count_nm * 100)
+        percent_at_least_5_nm = (non_melanoma_group_results['at_least_5_matches'] / count_nm * 100)
+        percent_at_least_6_nm = (non_melanoma_group_results['at_least_6_matches'] / count_nm * 100)
+        percent_at_least_8_nm = (non_melanoma_group_results['at_least_8_matches'] / count_nm * 100)
+        percent_zero_nm = (non_melanoma_group_results['zero_matches'] / count_nm * 100)
+
+
+    # --- Output results to a file ---
+    results_dir = os.path.join(script_dir, 'results')
+    os.makedirs(results_dir, exist_ok=True)
+    results_file_path = os.path.join(results_dir, 'ann_evaluation_results.txt')
+
+    with open(results_file_path, 'w') as f:
+        f.write("--- Evaluation Summary ---\n")
+        f.write(f"Processed {processed_count} test images.\n")
+        f.write(f"Average Precision@{k}: {avg_precision:.4f}\n")
+        f.write(f"% with at least 3/9 correct diagnoses: {percent_at_least_3_matches:.2f}%\n")
+        f.write(f"% with at least 5/9 correct diagnoses: {percent_at_least_5_matches:.2f}%\n")
+        f.write(f"% with at least 6/9 correct diagnoses: {percent_at_least_6_matches:.2f}%\n")
+        f.write(f"% with at least 8/9 correct diagnoses: {percent_at_least_8_matches:.2f}%\n")
+        f.write(f"% with no correct diagnoses: {percent_zero_matches:.2f}%\n")
+        f.write("--------------------------\n")
+
+        if not_found_images:
+            f.write("\n--- Images Not Found ---\n")
+            for image_id in sorted(not_found_images):
+                f.write(f"  - {image_id}\n")
+            f.write("--------------------------\n")
+
+        f.write("\n--- Results by Diagnosis ---\n")
+        # Add non-melanoma to the list of diagnoses to print, but handle it separately
+        sorted_dx = sorted(results_by_dx.items())
+        
+        for dx, data in sorted_dx:
+            avg_precision_dx = np.mean(data['precisions'])
+            count = data['count']
+            percent_at_least_3_dx = (data['at_least_3_matches'] / count * 100) if count > 0 else 0
+            percent_at_least_5_dx = (data['at_least_5_matches'] / count * 100) if count > 0 else 0
+            percent_at_least_6_dx = (data['at_least_6_matches'] / count * 100) if count > 0 else 0
+            percent_at_least_8_dx = (data['at_least_8_matches'] / count * 100) if count > 0 else 0
+            percent_zero_dx = (data['zero_matches'] / count * 100) if count > 0 else 0
+
+            f.write(f"\nDiagnosis: {dx} ({count} samples)\n")
+            f.write(f"  - Avg Precision@{k}: {avg_precision_dx:.4f}\n")
+            f.write(f"  - % with at least 3/9 correct: {percent_at_least_3_dx:.2f}%\n")
+            f.write(f"  - % with at least 5/9 correct: {percent_at_least_5_dx:.2f}%\n")
+            f.write(f"  - % with at least 6/9 correct: {percent_at_least_6_dx:.2f}%\n")
+            f.write(f"  - % with at least 8/9 correct: {percent_at_least_8_dx:.2f}%\n")
+            f.write(f"  - % with no correct diagnoses: {percent_zero_dx:.2f}%\n")
+        
+        # --- Write non-melanoma group results to file ---
+        if non_melanoma_group_results['count'] > 0:
+            f.write(f"\nDiagnosis: non-melanoma ({count_nm} samples) [binary classification]\n")
+            f.write(f"  - Avg Precision@{k}: {avg_precision_nm:.4f}\n")
+            f.write(f"  - % with at least 3/9 correct: {percent_at_least_3_nm:.2f}%\n")
+            f.write(f"  - % with at least 5/9 correct: {percent_at_least_5_nm:.2f}%\n")
+            f.write(f"  - % with at least 6/9 correct: {percent_at_least_6_nm:.2f}%\n")
+            f.write(f"  - % with at least 8/9 correct: {percent_at_least_8_nm:.2f}%\n")
+            f.write(f"  - % with no correct diagnoses: {percent_zero_nm:.2f}%\n")
+
+        f.write("----------------------------\n")
+
+    print(f"\nResults have been saved to {results_file_path}")
 
 
     print("\n--- Evaluation Summary ---")
@@ -155,7 +252,10 @@ async def evaluate_ann():
         print("--------------------------")
 
     print("\n--- Results by Diagnosis ---")
-    for dx, data in sorted(results_by_dx.items()):
+    # Add non-melanoma to the list of diagnoses to print, but handle it separately
+    sorted_dx = sorted(results_by_dx.items())
+    
+    for dx, data in sorted_dx:
         avg_precision_dx = np.mean(data['precisions'])
         count = data['count']
         percent_at_least_3_dx = (data['at_least_3_matches'] / count * 100) if count > 0 else 0
@@ -171,7 +271,20 @@ async def evaluate_ann():
         print(f"  - % with at least 6/9 correct: {percent_at_least_6_dx:.2f}%")
         print(f"  - % with at least 8/9 correct: {percent_at_least_8_dx:.2f}%")
         print(f"  - % with no correct diagnoses: {percent_zero_dx:.2f}%")
+    
+    # --- Print non-melanoma group results to console ---
+    if non_melanoma_group_results['count'] > 0:
+        print(f"\nDiagnosis: non-melanoma ({count_nm} samples) [binary classification]")
+        print(f"  - Avg Precision@{k}: {avg_precision_nm:.4f}")
+        print(f"  - % with at least 3/9 correct: {percent_at_least_3_nm:.2f}%")
+        print(f"  - % with at least 5/9 correct: {percent_at_least_5_nm:.2f}%")
+        print(f"  - % with at least 6/9 correct: {percent_at_least_6_nm:.2f}%")
+        print(f"  - % with at least 8/9 correct: {percent_at_least_8_nm:.2f}%")
+        print(f"  - % with no correct diagnoses: {percent_zero_nm:.2f}%")
+
     print("----------------------------")
+    if os.path.exists(results_file_path):
+        print(f"\nResults have been saved to {results_file_path}")
 
 
 if __name__ == "__main__":
